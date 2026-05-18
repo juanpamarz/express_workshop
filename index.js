@@ -1,6 +1,10 @@
+const bodyParser = require('body-parser');
 const express = require ('express');
 const app = express();
 const { pokemon } = require('./pokedex.json');
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // GET ES PARA OBTENER RECURSOS
 // POST ES PARA ALMACENAR RECURSOS O CREAR RECURSOS
@@ -11,6 +15,12 @@ const { pokemon } = require('./pokedex.json');
 app.get ("/", (req, res, next) => {
     res.status(200).send("Bienvenido a la Pokedex");
 });
+
+
+app.post("/pokemon/", (req, res, next) => {
+    return res.status(200).send(req.body.name);
+});
+
 
 app.get("/pokemon", (req, res, next) => {
     res.status(200);
