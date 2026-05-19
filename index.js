@@ -8,15 +8,15 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// GET ES PARA OBTENER RECURSOS
-// POST ES PARA ALMACENAR RECURSOS O CREAR RECURSOS
-// PUT ES MODIFICAR RECURSOS
-// PATCH PARA MODIFICAR PARCIALMENTE RECURSOS
-// DELETE ES PARA ELIMINAR RECURSOS
 app.get ("/", (req, res, next) => {
-    res.status(200).send("Bienvenido a la Pokedex");
+    res.status(200).json({ code: 1, message: "Bienvenido a la Pokedex" });
 });
+
 app.use("/pokemon", pokemon);
+
+app.use((req, res, next) => {
+    return res.status(404).json({ code:404, message: "URL no encontrado" });
+});
 
 
 
