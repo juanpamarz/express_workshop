@@ -1,8 +1,10 @@
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const express = require ('express');
 const app = express();
-const { pokemon } = require('./pokedex.json');
+const pokemon = require('./routes/pokemon');
 
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -11,41 +13,12 @@ app.use(express.urlencoded({ extended: true }));
 // PUT ES MODIFICAR RECURSOS
 // PATCH PARA MODIFICAR PARCIALMENTE RECURSOS
 // DELETE ES PARA ELIMINAR RECURSOS
-
 app.get ("/", (req, res, next) => {
     res.status(200).send("Bienvenido a la Pokedex");
 });
+app.use("/pokemon", pokemon);
 
 
-app.post("/pokemon/", (req, res, next) => {
-    return res.status(200).send(req.body.name);
-});
-
-
-app.get("/pokemon", (req, res, next) => {
-    res.status(200);
-    res.json(pokemon);
-});
-
-app.get("/pokemon/:id", (req, res, next) => {
-    const parametro = req.params.id;
-
-    // 1. SI ES UN NOMBRE (Filtramos usando .find())
-    if (isNaN(parametro)) {
-        const encontrado = pokemon.find(p => p.name.toLowerCase() === parametro.toLowerCase());
-        
-        // Operador Ternario: Si lo encuentra responde JSON, si no, salta al siguiente middleware (next)
-        return encontrado ? (console.log("Encontrado por nombre:", encontrado), res.json(encontrado)) : next();
-    }
-
-    // 2. SI ES UN ID (Es un número)
-    const id = parseInt(parametro, 10) - 1;
-
-    // Operador Ternario para la validación del rango del ID
-    const idValido = (id >= 0 && id < pokemon.length);
-    
-    return idValido ? (console.log("Encontrado por ID:", pokemon[id]), res.json(pokemon[id])) : next();
-});
 
 app.listen(process.env.PORT || 3000, () => {
     console.log("ya corrió...");
