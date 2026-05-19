@@ -8,5 +8,4 @@ const pool = mysql.createPool({
     database: 'pokemon'
 });
 
-// Esto habilita automáticamente el uso de async/await en tus rutas
 module.exports = pool.promise();
