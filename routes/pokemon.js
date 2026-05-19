@@ -1,6 +1,6 @@
 const express = require('express');
 const pokemon = express.Router();
-const { pokemon: pk } = require('../pokedex.json');
+const db = require('../config/database');
 
 // POST: Almacenar o recibir recursos
 pokemon.post("/", (req, res, next) => {
@@ -9,29 +9,27 @@ pokemon.post("/", (req, res, next) => {
 });
 
 // GET: Obtener todos los pokemon
-pokemon.get("/", (req, res, next) => {
-    res.status(200);
-    res.json(pk); // 👈 Enviamos la lista de datos 'pk', no el router
+pokemon.get("/", async(req, res, next) => {
+    const pkmn = await db.query("SELECT * FROM pokemon");
+    return res.status(200).json(pkmn);
 });
 
 // GET: Obtener un pokemon por ID o por Nombre
-pokemon.get("/:id", (req, res, next) => {
+pokemon.get("/:id", async (req, res, next) => {
     const parametro = req.params.id;
 
-    // 1. SI ES UN NOMBRE (Filtramos usando .find() sobre la data 'pk')
+    // 1. SI ES UN NOMBRE (Filtramos usando SQL)
     if (isNaN(parametro)) {
-        const encontrado = pk.find(p => p.name.toLowerCase() === parametro.toLowerCase());
+        const pkmn = await db.query("SELECT * FROM pokemon WHERE name = ?", [parametro]);
         
-        return encontrado ? (console.log("Encontrado por nombre:", encontrado), res.json(encontrado)) : next();
+        return pkmn.length ? (console.log("Encontrado por nombre:", pkmn[0]), res.json(pkmn[0])) : next();
     }
 
     // 2. SI ES UN ID (Es un número)
-    const id = parseInt(parametro, 10) - 1;
-
-    // Validación del rango usando 'pk.length'
-    const idValido = (id >= 0 && id < pk.length);
+    const id = parseInt(parametro, 10);
+    const pkmn = await db.query("SELECT * FROM pokemon WHERE id = ?", [id]);
     
-    return idValido ? (console.log("Encontrado por ID:", pk[id]), res.json(pk[id])) : next();
+    return pkmn.length ? (console.log("Encontrado por ID:", pkmn[0]), res.json(pkmn[0])) : next();
 });
 
 module.exports = pokemon;
