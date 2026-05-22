@@ -1,40 +1,50 @@
+// Dependencias
 const morgan = require('morgan');
 const express = require("express");
 const app = express();
-const jwt = require('jsonwebtoken'); // Necesitas importar jwt aquí
+const jwt = require('jsonwebtoken');
+const cors = require('cors'); // Importa CORS para permitir peticiones desde el navegador
 
+// Routers
 const pokemon = require('./routes/pokemon');
 const user = require('./routes/user');
 
+// Middlewares
+// (Si prefieres usar tus archivos de la carpeta /middleware, 
+// puedes sustituir estas líneas por los 'require' correspondientes)
+const notFound = require('./middleware/notFound');
+const indexDos = require('./middleware/indexDos');
+
+// Configuración de la App
+app.use(cors()); // Habilita el acceso desde tu sitio web
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-app.get("/", (req, res, next) => {
-    return res.status(200).json({ code: 1, message: "Bienvenido al Pokédex" });
-});
+// Rutas Públicas
+app.get("/", indexDos);
+app.use("/user", user); // Registro y Login
 
-app.use("/user", user); // Registro y Login público
-
-// Middleware de seguridad (inline, como en tu captura)
+// Middleware de Seguridad (Autenticación)
 app.use((req, res, next) => {
     try {
+        // Busca el token en el header 'Authorization'
         const token = req.headers.authorization.split(" ")[1];
         const decoded = jwt.verify(token, "debugkey");
         req.user = decoded;
-        next();
+        next(); // Si es válido, continúa
     } catch (error) {
         return res.status(401).json({ code: 401, message: "No tienes permiso :(" });
     }
 });
 
-// Ahora sí, esta ruta está protegida por el middleware de arriba
+// Rutas Protegidas (Requieren Token)
 app.use("/pokemon", pokemon);
 
-app.use((req, res, next) => {
-    return res.status(404).json({ code: 404, message: "URL no encontrada" });
-});
+// Manejador de 404
+app.use(notFound);
 
+// Servidor
 app.listen(process.env.PORT || 3000, () => {
     console.log("Server is running...");
 });
