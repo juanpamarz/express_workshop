@@ -1,25 +1,31 @@
-const bodyParser = require('body-parser');
+
 const morgan = require('morgan');
-const express = require ('express');
+const express = require("express");
 const app = express();
+
+// Routers
 const pokemon = require('./routes/pokemon');
+const user = require('./routes/user');
+// Middleware
+const auth = require('../middleware/auth');
+const notFound = require('../middleware/notFound');
+const indexDos = require('../middleware/indexDos');
 
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 
-app.get ("/", (req, res, next) => {
-    res.status(200).json({ code: 1, message: "Bienvenido a la Pokedex" });
-});
+// Rutas Públicas
+app.get("/", indexDos);
+app.use("/user", user);
 
+// Rutas Protegidas (Requieren Token)
+app.use(auth);
 app.use("/pokemon", pokemon);
 
-app.use((req, res, next) => {
-    return res.status(404).json({ code:404, message: "URL no encontrado" });
-});
-
-
+// Manejador final
+app.use(notFound);
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log("ya corrió...");
+    console.log("Server is running...");
 });
